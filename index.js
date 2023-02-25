@@ -3,7 +3,8 @@ const cors = require("cors")
 let user= require("./userModule");
 let mongoose = require("mongoose")
 let jwt = require("jsonwebtoken");
-let jwt_key = "private"
+require("dotenv").config()
+// let jwt_key = "private"
 const app = express();
 
 
@@ -49,14 +50,14 @@ app.post("/register", async (req, res) => {
         const isRegisterEmail = await user.findOne({ email: email })
 
         if (isRegisterEmail) return res.send({ result: "Email id already registered" })
-        
+
         let insertData = await user.create(data);    
         let User = {
             "_id": insertData._id,
             "name": insertData.name,
             "email": insertData.email
         }
-        jwt.sign(User,jwt_key,{expiresIn:"2h"},(err,token)=>{
+        jwt.sign(User,`${process.env.JWT_KEY}`,{expiresIn:"2h"},(err,token)=>{
 
             if(err){
                 return res.status(400).send({result:"SOME INTERNAL SERVER ERROR OCCURRED, PLEASE TRY AFTER SOME TIME "})
@@ -94,7 +95,7 @@ app.post("/login", async (req, res) => {
         }
         let User = await user.findOne(req.body).select("-password");
         if (User) {
-            jwt.sign({User},jwt_key,{expiresIn:"2h"},(err,token)=>{
+            jwt.sign({User},`${process.env.JWT_KEY}`,{expiresIn:"2h"},(err,token)=>{
 
                 if(err){
                     return res.status(400).send({result:"SOME INTERNAL SERVER ERROR OCCURRED, PLEASE TRY AFTER SOME TIME "})
@@ -117,12 +118,12 @@ app.post("/login", async (req, res) => {
 
 
 mongoose.set('strictQuery', false);
-mongoose.connect("mongodb+srv://Suman-1432:Suman1432@cluster0.bkkfmpr.mongodb.net/auths",(err,val)=>{
+mongoose.connect(`${process.env.DB_URL}`,(err,val)=>{
     if(!err){
         console.log("mongo db is connected")
     }
 })
-app.listen(5000,(err,val)=>{
+app.listen(process.env.PORT,(err,val)=>{
     if(!err){
         console.log("server is run in port no 3000")
     }
